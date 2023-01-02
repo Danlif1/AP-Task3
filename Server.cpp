@@ -22,8 +22,7 @@
  * @param argv Should be 3.
  * @return int Returning 0 if there is a problem with the inputs.
  */
-int main(int argc, char const* argv[])
-{
+int main(int argc, char const* argv[]) {
     if(argc != 3) {
         std::cout << "Please enter both file and port into argv" << std::endl;
         return 0;
@@ -47,7 +46,6 @@ int main(int argc, char const* argv[])
         std::cout << "Not all vectors are valid, please use a different file." << std::endl;
         return 0;
     }
-
 
     // Taken from Introduction to Computer Networks
     const int port = atoi(argv[2]);
@@ -136,8 +134,7 @@ int main(int argc, char const* argv[])
                         std::string result = knn_run.predict(point);    // Getting the result in a string form.
                         answer = new char[result.length() + 1];                     // Resizing answer to fit the string. 
                         strcpy(answer, result.c_str());                             // Setting answer to be the same as result.
-                        send(client_sock, answer, read_bytes, 0);
-                        int sent_bytes = send(client_sock, buffer, read_bytes, 0);  // Sending the answer.
+                        int sent_bytes = send(client_sock, answer, result.length() + 1, 0);  // Sending the answer.
                         if (sent_bytes < 0) {
                             perror("error sending to client");
                         }
