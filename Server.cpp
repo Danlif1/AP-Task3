@@ -8,7 +8,6 @@
 #include <unistd.h>
 #include <string>
 #include <iostream>
-#include <arpa/inet.h>
 #include "SafetyChecks.h"
 #include "Point.h"
 #include "PointReader.h"
@@ -32,14 +31,13 @@ int main(int argc, char const* argv[])
     std::fstream fout;
     std::string fileName = argv[1];
     if (!CheckFile(fileName)) {
-        //The file doesn't end with .csv so we need to terminate the program.
+        //The file doesn't end with .csv, so we need to terminate the program.
         std::cout << "The file doesn't end with .csv" << std::endl;
         return 0;
     } else {
         // Opening the file.
         fout.open(fileName, std::ios::out | std::ios::app);
     }
-
     PointReader classifiedPointReader(fileName);
     Point cPoint;
     std::vector<Point> classifiedPoints;
@@ -49,7 +47,6 @@ int main(int argc, char const* argv[])
         std::cout << "Not all vectors are valid, please use a different file." << std::endl;
         return 0;
     }
-    
 
 
     // Taken from Introduction to Computer Networks
@@ -87,14 +84,13 @@ int main(int argc, char const* argv[])
             } else if (read_bytes < 0) {
                 // error 
             } else {
-                std::vector<double> point;                      // Initilizing the point.
-                std::string currentInfo = "";                   // Initilizing the info string.
-                std::string distMetric = "";                    // Initilizing the distance metric.
-                char* answer;                                   // Initilzing the answer.
-                int k = 0;                                      // Initilzing k.
+                std::vector<double> point;                      // Initializing the point.
+                std::string currentInfo = "";                   // Initializing the info string.
+                std::string distMetric = "";                    // Initializing the distance metric.
+                char* answer;                                   // Initializing the answer.
+                int k = 0;                                      // Initializing k.
                 bool FinishedReading = true;                    // Starting to read.
                 while(FinishedReading){
-                    int valread = read(client_sock, buffer, 1024);   // Reading the first 1024 bits of data.
                     for(int i = 0; i < 1024; i++){              // We want to read the entire buffer.
                         if (buffer[i] != ' '){                  // If buffer is not space then its part of the same variable.
                             currentInfo += buffer[i];           // So we want to continue read it.
@@ -102,14 +98,15 @@ int main(int argc, char const* argv[])
                             if (distMetric == "") {             // Both k and point can have the same type of variable but distMetric differentiate between them
                                 if(IsDouble(currentInfo)){      // The currentInfo is a double so its part of the vector.
                                     point.push_back(stod(currentInfo));
-                                } else {                        // The currentInfo is not a double so its the distance metric.
+                                } else {                        // The currentInfo is not a double, so it's the distance metric.
                                     distMetric = currentInfo;
                                 }
                             } else {                            // This should be the k.
                                 if(IsDouble(currentInfo)){
                                     k = std::stoi(currentInfo);
-                                } else{                         // The k is not an int so there is an error with the send.
-                                    answer = "invalid input";
+                                } else{                         // The k is not an int so there is an error with the send function.
+                                    answer = new char[14];
+                                    strcpy(answer, "invalid input");
                                 }
                                 FinishedReading = false;        // We read k or there is a problem with the information given.
                             }
@@ -118,36 +115,41 @@ int main(int argc, char const* argv[])
                     }
                 }
                 // After all this we now have a vector, distance metric and a k.
-                if(answer[0] == 'i') {                      // There is an error in the information. (i is the first letter of invalid input)
+                if(answer[0] == 'i') {                      // There is an error in the information. ('i' is the first letter of invalid input)
                     send(client_sock, answer, strlen(answer), 0);
                 } else {
                     if (!PointsCount(k, classifiedPoints.size())){
-                        //K is either too big or too small so we need to terminate the program.
-                        answer = "invalid input";
+                        //K is either too big or too small, so we need to terminate the program.
+                        answer = new char[14];
+                        strcpy(answer, "invalid input");
                         send(client_sock, answer, strlen(answer), 0);
                     }
                     KNN knn_run(k,distMetric);
                     knn_run.fit(classifiedPoints);
                     if (!GoodVector(point, classifiedPoints[0])){
                         if (!point.empty()) {
-                            answer = "invalid input";
+                            answer = new char[14];
+                            strcpy(answer, "invalid input");
                             send(client_sock, answer, strlen(answer), 0);
                         }
                     } else {
                         std::string result = knn_run.predict(point);    // Getting the result in a string form.
                         answer = new char[result.length() + 1];                     // Resizing answer to fit the string. 
                         strcpy(answer, result.c_str());                             // Setting answer to be the same as result.
+                        send(client_sock, answer, read_bytes, 0);
                         int sent_bytes = send(client_sock, buffer, read_bytes, 0);  // Sending the answer.
                         if (sent_bytes < 0) {
                             perror("error sending to client");
+                        }
                     }
                 }
             }
             
         }
     }
-    // we wont get here because it's while true but we still want to remeber we need to close the socket at the end of the code.
+    // we won't get here because it's while(true), but we still want to remember we need to close the socket at the end of the code.
     close(sock);
 
 	return 0;
+    
 }
