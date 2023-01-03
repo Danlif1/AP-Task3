@@ -3,8 +3,8 @@
 //
 
 
-#ifndef AP_TASK2_POINTREADER_H
-#define AP_TASK2_POINTREADER_H
+#ifndef AP_TASK3_POINTREADER_H
+#define AP_TASK3_POINTREADER_H
 #include "SafetyChecks.h"
 class PointReader {
 private:
@@ -18,4 +18,4 @@ public:
     bool getNextPoint(Point&);
 
 };
-#endif //AP_TASK2_POINTREADER_H
+#endif //AP_TASK3_POINTREADER_H
