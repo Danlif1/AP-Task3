@@ -1,6 +1,6 @@
 
-#ifndef AP_TASK2_KNN_H
-#define AP_TASK2_KNN_H
+#ifndef AP_TASK3_KNN_H
+#define AP_TASK3_KNN_H
 
 #include <tuple>
 #include <algorithm>
@@ -26,4 +26,4 @@ public:
 
     std::string predict(Point newpoint);
 };
-#endif //AP_TASK2_KNN_H
+#endif //AP_TASK3_KNN_H
