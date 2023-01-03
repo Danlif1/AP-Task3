@@ -11,12 +11,10 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <string>
-#include <iostream>
-#include "SafetyChecks.h"
-#include "Point.h"
 #include "PointReader.h"
 #include "KNN.h"
+
+
 
 
 class Server {
@@ -36,7 +34,7 @@ class Server {
 public:
     Server(int, std::vector<Point>);
     void connectToClient();
-    void receiveFromClient();
+    bool receiveFromClient();
     void closeSocket();
     void readInput();
 
