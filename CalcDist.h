@@ -1,5 +1,5 @@
-#ifndef AP_TASK2_calcDist_HPP
-#define AP_TASK2_calcDist_HPP
+#ifndef AP_TASK3_calcDist_HPP
+#define AP_TASK3_calcDist_HPP
 
 
 #include <math.h>
@@ -16,4 +16,4 @@ double Minkowski(std::vector<double>, std::vector<double>, int);
 
 
 double calcDistance(std::string, std::vector<double>, Point);
-#endif //AP_TASK2_calcDist_HPP
+#endif //AP_TASK3_calcDist_HPP
