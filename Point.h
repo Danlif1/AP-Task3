@@ -2,8 +2,8 @@
 // Created by Daniel Lifshitz on 30/11/2022.
 //
 
-#ifndef AP_TASK2_POINT_H
-#define AP_TASK2_POINT_H
+#ifndef AP_TASK3_POINT_H
+#define AP_TASK3_POINT_H
 
 #include <vector>
 #include <iostream>
@@ -21,7 +21,7 @@ private:
     std::vector<double> pointCords;
     std::string type;
 public:
-    Point(std::vector<double> = {}, std::string type = "");
+    Point(std::vector<double> = {0}, std::string type = "");
     Point(const Point& point);
     /**
      * Getters.
@@ -39,4 +39,4 @@ bool IsDouble(std::string);
 std::ostream& operator<<(std::ostream& os, const Point& point);
 
 
-#endif //AP_TASK2_POINT_H
+#endif //AP_TASK3_POINT_H
