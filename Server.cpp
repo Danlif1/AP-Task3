@@ -32,17 +32,21 @@ void Server::connectToClient() {
     }
 }
 
-void Server::receiveFromClient() {
+bool Server::receiveFromClient() {
     memset(&(Server::buffer), 0, sizeof(Server::buffer));
     int expected_data_len = sizeof(Server::buffer);
     int read_bytes = recv(Server::client_sock, Server::buffer, expected_data_len, 0);
     if (read_bytes == 0) {
         // connection is closed
         // So we need to get the next client.
+        return false;
     } else if (read_bytes < 0) {
         // error
+        perror("error reading bytes");
+        return false;
     } else {
         readInput();
+        return true;
     }
 }
 
@@ -53,49 +57,42 @@ void Server::readInput() {
     std::string currentInfo = "";                   // Initializing the info string.
     char* answer;                                   // Initializing the answer.
     std::string bufferString = "";                  // Initializing the buffer string.
-    
+    bool inVector = true;                           // Initializing the inVector boolean.
+    bool error = false;                             // Initializing the error boolean.
     // First we will transform the buffer from char* to string.
 
     for(int i = 0; i < 4096; i++){                  // 4096 is the size of the buffer.
-        if(buffer[i] = '\0'){                       // We reached the end of the buffer
+        if(buffer[i] == '\0'){                       // We reached the end of the buffer
             break;
         } else {                                    // There is more to read.
             bufferString += buffer[i];
         }
     }
-    
+    std::stringstream bufferStream(bufferString);
     // Now we will read the entire buffer and we will cut it into a vector a distance metric and a k.
-    for(int i = 0; i < bufferString.size(); i++){
-        if(bufferString[i] != ' '){                 // We did not get to the end of the current variable yet.
-            currentInfo += bufferString[i];
-        } else {                                    // We did get to the end of the current variable.
-            // We want to check if the current variable is a number or not.
-            if (IsDouble(currentInfo)){             // It is a number so it could be either k or a part of the vector.
-                if (distMetric != ""){              // We have already initialized the distance metric so the argument is k.
-                    if (k != -1){                   // There is an invalid input in the buffer.
-                        answer = new char[14];
-                        strcpy(answer, "invalid input");
-                        break;
-                    }
-                    k = stod(currentInfo);
-                } else {                            // We did not initialize the distance metric yet so the argument is part of the vector.
-                    point.push_back(stod(currentInfo));
-                }
-            } else {                                // The current variable is a string so it should be the distance metric.
-                if(distMetric != ""){               // There is an invalid input in the buffer.
-                    answer = new char[14];
-                    strcpy(answer, "invalid input");
-                    break;
-                }
+    while (std::getline(bufferStream, currentInfo, ' ')) {
+        if(inVector){
+            if(IsDouble(currentInfo)){
+                point.push_back(stod(currentInfo));
+            } else {
                 distMetric = currentInfo;
+                inVector = false;
             }
-            currentInfo = "";                       // We want to restart the currentInfo after getting the variable to be ready for the next one.
+        } else {
+            if(IsDouble(currentInfo)){
+                k = stod(currentInfo);
+            } else {
+                error = true;
+            }
         }
     }
-    // After all this we now have a vector, distance metric and a k.
-    if(answer[0] == 'i') {
+    if (k == -1){
+        error = true;
+    }
+    if(error) {
         // There is an error in the information. ('i' is the first letter of invalid input)
-       sendToClient(answer);
+        char invInp[14] = "invalid input";
+       sendToClient(invInp);
     } else {
         // There is no error in the information.
         runKNN(point, distMetric, k);
@@ -106,7 +103,8 @@ void Server::readInput() {
 void Server::runKNN(Point point, std::string distMetric, int k) {
     if (!PointsCount(k, Server::classifiedPoints.size())){
         //K is either too big or too small, so we need to terminate the program.
-        char* answer = new char[14];
+        char* answer = new char[20];
+        memset(answer, '\0', 20);
         strcpy(answer, "invalid input");
         sendToClient(answer);
     }
@@ -114,18 +112,21 @@ void Server::runKNN(Point point, std::string distMetric, int k) {
     knn_run.fit(Server::classifiedPoints);
     if (!GoodVector(point, Server::classifiedPoints[0])){
         if (!point.getAll().empty()) {
-            char* answer = new char[14];
+            char* answer = new char[20];
+            memset(answer, '\0', 20);
             strcpy(answer, "invalid input");
             sendToClient(answer);
         }
     } else {
         std::string result = knn_run.predict(point);    // Getting the result in a string form.
         char* answer = new char[result.length() + 1];   // Resizing answer to fit the string.
+        memset(answer, '\0', result.length() + 1);
         strcpy(answer, result.c_str());
         sendToClient(answer);                           // Setting answer to be the same as result.
     }
 }
 void Server::sendToClient(char* answer) {
+    std::cout << answer << std::endl;
     if (send(Server::client_sock, answer, strlen(answer), 0) < 0) {
         perror("error sending to client");
     }
