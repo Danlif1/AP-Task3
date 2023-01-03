@@ -1,6 +1,6 @@
 #include "Server.h"
 
-Server::Server(int port, vector<Point> classifiedPoints) {
+Server::Server(int port, std::vector<Point> classifiedPoints) {
     Server::port = port;
     Server::classifiedPoints = classifiedPoints;
     Server::socket_server = socket(AF_INET, SOCK_STREAM, 0);
@@ -22,12 +22,12 @@ void Server::bindSocket() {
 }
 
 void Server::connectToClient() {
-    if (listen(sock, 5) < 0) {
+    if (listen(socket_server, 5) < 0) {
         perror("error listening on socket");
     }
     socklen_t client_len = sizeof(client_address);
-    int client_sock = accept(Server::sock, (struct sockaddr *) &(Server::client_address), &(Server::client_len));
-    if (client_sock < 0) {
+    Server::client_sock = accept(Server::socket_server, (struct sockaddr *) &(Server::client_address), &(Server::client_len));
+    if (Server::client_sock < 0) {
         perror("error accepting connection");
     }
 }
@@ -35,7 +35,7 @@ void Server::connectToClient() {
 void Server::receiveFromClient() {
     memset(&(Server::buffer), 0, sizeof(Server::buffer));
     int expected_data_len = sizeof(Server::buffer);
-    int read_bytes = recv(client_sock, Server::buffer, expected_data_len, 0);
+    int read_bytes = recv(Server::client_sock, Server::buffer, expected_data_len, 0);
     if (read_bytes == 0) {
         // connection is closed
         // So we need to get the next client.
@@ -48,34 +48,48 @@ void Server::receiveFromClient() {
 
 void Server::readInput() {
     std::vector<double> point;                      // Initializing the point.
-    std::string currentInfo = "";                   // Initializing the info string.
     std::string distMetric = "";                    // Initializing the distance metric.
+    int k = -1;                                     // Initializing k.
+    std::string currentInfo = "";                   // Initializing the info string.
     char* answer;                                   // Initializing the answer.
-    int k = 0;                                      // Initializing k.
-    bool FinishedReading = true;                    // Starting to read.
-    while(FinishedReading){
-        for(int i = 0; i < 1024; i++){              // We want to read the entire buffer.
-            if (buffer[i] != ' '){                  // If buffer is not space then its part of the same variable.
-                currentInfo += buffer[i];           // So we want to continue read it.
-            } else {
-                if (distMetric == "") {             // Both k and point can have the same type of variable but distMetric differentiate between them
-                    if(IsDouble(currentInfo)){      // The currentInfo is a double so its part of the vector.
-                        point.push_back(stod(currentInfo));
-                    } else {                        // The currentInfo is not a double, so it's the distance metric.
-                        distMetric = currentInfo;
-                    }
-                } else {                            // This should be the k.
-                    if(IsDouble(currentInfo)){
-                        k = std::stoi(currentInfo);
-                    } else{                         // The k is not an int so there is an error with the send function.
+    std::string bufferString = "";                  // Initializing the buffer string.
+    
+    // First we will transform the buffer from char* to string.
+
+    for(int i = 0; i < 4096; i++){                  // 4096 is the size of the buffer.
+        if(buffer[i] = '\0'){                       // We reached the end of the buffer
+            break;
+        } else {                                    // There is more to read.
+            bufferString += buffer[i];
+        }
+    }
+    
+    // Now we will read the entire buffer and we will cut it into a vector a distance metric and a k.
+    for(int i = 0; i < bufferString.size(); i++){
+        if(bufferString[i] != ' '){                 // We did not get to the end of the current variable yet.
+            currentInfo += bufferString[i];
+        } else {                                    // We did get to the end of the current variable.
+            // We want to check if the current variable is a number or not.
+            if (IsDouble(currentInfo)){             // It is a number so it could be either k or a part of the vector.
+                if (distMetric != ""){              // We have already initialized the distance metric so the argument is k.
+                    if (k != -1){                   // There is an invalid input in the buffer.
                         answer = new char[14];
-                        strcpy_s(answer, "invalid input");
-                        sendToClient(answer);
+                        strcpy(answer, "invalid input");
+                        break;
                     }
-                    FinishedReading = false;        // We read k or there is a problem with the information given.
+                    k = stod(currentInfo);
+                } else {                            // We did not initialize the distance metric yet so the argument is part of the vector.
+                    point.push_back(stod(currentInfo));
                 }
-                currentInfo = "";                   // Restarting currentInfo.
+            } else {                                // The current variable is a string so it should be the distance metric.
+                if(distMetric != ""){               // There is an invalid input in the buffer.
+                    answer = new char[14];
+                    strcpy(answer, "invalid input");
+                    break;
+                }
+                distMetric = currentInfo;
             }
+            currentInfo = "";                       // We want to restart the currentInfo after getting the variable to be ready for the next one.
         }
     }
     // After all this we now have a vector, distance metric and a k.
@@ -87,32 +101,32 @@ void Server::readInput() {
         runKNN(point, distMetric, k);
     }
 }
-}
+
 
 void Server::runKNN(Point point, std::string distMetric, int k) {
     if (!PointsCount(k, Server::classifiedPoints.size())){
         //K is either too big or too small, so we need to terminate the program.
-        answer = new char[14];
-        strcpy_s(answer, "invalid input");
+        char* answer = new char[14];
+        strcpy(answer, "invalid input");
         sendToClient(answer);
     }
     KNN knn_run(k,distMetric);
     knn_run.fit(Server::classifiedPoints);
     if (!GoodVector(point, Server::classifiedPoints[0])){
-        if (!point.empty()) {
-            answer = new char[14];
-            strcpy_s(answer, "invalid input");
+        if (!point.getAll().empty()) {
+            char* answer = new char[14];
+            strcpy(answer, "invalid input");
             sendToClient(answer);
         }
     } else {
         std::string result = knn_run.predict(point);    // Getting the result in a string form.
-        answer = new char[result.length() + 1];                     // Resizing answer to fit the string.
+        char* answer = new char[result.length() + 1];   // Resizing answer to fit the string.
         strcpy(answer, result.c_str());
-        sendToClient(answer)// Setting answer to be the same as result.
+        sendToClient(answer);                           // Setting answer to be the same as result.
     }
 }
 void Server::sendToClient(char* answer) {
-    if (send(client_sock, answer, strlen(answer), 0) < 0) {
+    if (send(Server::client_sock, answer, strlen(answer), 0) < 0) {
         perror("error sending to client");
     }
 }
@@ -120,3 +134,6 @@ void Server::sendToClient(char* answer) {
 void Server::closeSocket(){
     close(Server::socket_server);
 }
+
+
+
