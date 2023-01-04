@@ -38,10 +38,10 @@ bool PointsCount(long k, long amountOfPoints){
         return true;
     }
     else if (k <= 0){
-        std::cout << "K is too small, please enter a bigger number as K" << std::endl;
+        // std::cout << "K is too small, please enter a bigger number as K" << std::endl;
     }
     else{
-        std::cout << "K is too big, please enter a smaller number as K" << std::endl;
+        // std::cout << "K is too big, please enter a smaller number as K" << std::endl;
     }
     return false;
 }
@@ -144,6 +144,6 @@ bool CheckMetric(std::string metric){
         //Meaning its MIN.
         return true;
     }
-    std::cout << "Invalid metric name." << std::endl;
+    // std::cout << "Invalid metric name." << std::endl;
     return false;
 }
