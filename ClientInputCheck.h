@@ -4,7 +4,7 @@
 
 #ifndef AP_TASK3_CLIENTINPUTCHECK_H
 #define AP_TASK3_CLIENTINPUTCHECK_H
-
+#include <string>
 bool isValidPort(std::string port);
 
 bool isValidIP(std::string ip);
