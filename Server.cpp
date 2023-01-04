@@ -88,6 +88,8 @@ void Server::readInput() {
     }
     if (k == -1){
         error = true;
+    } else if (!CheckMetric(distMetric)){
+        error = true;
     }
     if(error) {
         // There is an error in the information. ('i' is the first letter of invalid input)
@@ -126,7 +128,6 @@ void Server::runKNN(Point point, std::string distMetric, int k) {
     }
 }
 void Server::sendToClient(char* answer) {
-    std::cout << answer << std::endl;
     if (send(Server::client_sock, answer, strlen(answer), 0) < 0) {
         perror("error sending to client");
     }
