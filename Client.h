@@ -2,8 +2,8 @@
 // Created by lenovo on 1/2/2023.
 //
 
-#ifndef UNTITLED_CLIENT_H
-#define UNTITLED_CLIENT_H
+#ifndef AP_TASK3_CLIENT_H
+#define AP_TASK3_CLIENT_H
 
 #include <iostream>
 #include <sys/socket.h>
@@ -34,4 +34,4 @@ public:
 };
 
 
-#endif //UNTITLED_CLIENT_H
+#endif //AP_TASK3_CLIENT_H
