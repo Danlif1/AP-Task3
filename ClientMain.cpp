@@ -17,6 +17,6 @@ int main(int argc, char **argv) {
     while (client.receiveInput()) {
         client.receiveFromServer();
     }
-//    delete &client;
+
     return 0;
 }
