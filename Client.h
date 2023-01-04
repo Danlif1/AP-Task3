@@ -17,8 +17,8 @@
 class Client {
     int port;
     const char *ip;
-    static int client_socket;
-    static struct sockaddr_in remote_address;
+    int client_socket;
+    struct sockaddr_in remote_address;
     char buffer[4096];
 
     void sendToServer(std::string input);
