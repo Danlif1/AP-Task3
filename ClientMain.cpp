@@ -10,12 +10,13 @@ int main(int argc, char **argv) {
     // check that argv[2] is a valid port number
     if (!inputCheck(argc, argv)) {
         std::perror("Invalid input");
+        return 0;
     }
     Client client(atoi(argv[2]), argv[1]);
     client.connectToServer();
     while (client.receiveInput()) {
         client.receiveFromServer();
     }
-    delete &client;
+//    delete &client;
     return 0;
 }
