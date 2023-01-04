@@ -58,7 +58,7 @@ bool KCheck(std::string k){
     if (firstDigit >= 0 && firstDigit < 10){
         return true;
     }
-    std::cout << "K should be a number" << std::endl;
+    // std::cout << "K should be a number" << std::endl;
     return false;
 }
 
