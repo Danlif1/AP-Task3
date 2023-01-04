@@ -114,4 +114,7 @@ double calcDistance(std::string metric, std::vector<double> uPoint, Point kPoint
         //Meaning its MIN.
         return Minkowski(uPoint, kPoint.getAll(), 2);
     }
+
+    // We will not get her because we use CheckMetric() before.
+    return 0;
 }
